@@ -46,4 +46,4 @@ const CreateNew = ({ addAnecdote }) => {
   )
 }
 
-export default CreateNew
+export default CreateNew 
