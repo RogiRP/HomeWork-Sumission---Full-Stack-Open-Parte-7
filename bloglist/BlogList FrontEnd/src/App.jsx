@@ -5,18 +5,19 @@ import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import useNotificationStore from './stores/notificationStore'
+import useBlogStore from './stores/blogStore'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [formVisible, setFormVisible] = useState(false)
 
   const { setNotification } = useNotificationStore()
+  const { blogs, initializeBlogs, createBlog } = useBlogStore()
 
   useEffect(() => {
-    blogService.getAll().then(blogs => setBlogs(blogs))
+    initializeBlogs()
   }, [])
 
   useEffect(() => {
@@ -51,8 +52,7 @@ const App = () => {
 
   const handleCreate = async (newBlog) => {
     try {
-      const createdBlog = await blogService.create(newBlog)
-      setBlogs(blogs.concat({ ...createdBlog, user: { username: user.username, name: user.name } }))
+      const createdBlog = await createBlog(newBlog, user)
       setFormVisible(false)
       setNotification(`a new blog ${createdBlog.title} by ${createdBlog.author} added`, 'success')
     } catch {
@@ -69,14 +69,18 @@ const App = () => {
       user: blog.user ? blog.user.id : null
     }
     const returnedBlog = await blogService.update(blog.id, updatedBlog)
-    setBlogs(blogs.map(b => b.id === returnedBlog.id ? { ...returnedBlog, user: blog.user } : b))
+    useBlogStore.setState((state) => ({
+      blogs: state.blogs.map(b => b.id === returnedBlog.id ? { ...returnedBlog, user: blog.user } : b)
+    }))
   }
 
   const handleDelete = async (blog) => {
     const confirmed = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
     if (!confirmed) return
     await blogService.remove(blog.id)
-    setBlogs(blogs.filter(b => b.id !== blog.id))
+    useBlogStore.setState((state) => ({
+      blogs: state.blogs.filter(b => b.id !== blog.id)
+    }))
   }
 
   if (user === null) {
