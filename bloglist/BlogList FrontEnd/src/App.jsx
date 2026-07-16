@@ -2,52 +2,34 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
-import blogService from './services/blogs'
-import loginService from './services/login'
 import useNotificationStore from './stores/notificationStore'
 import useBlogStore from './stores/blogStore'
+import useUserStore from './stores/userStore'
 
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
   const [formVisible, setFormVisible] = useState(false)
 
   const { setNotification } = useNotificationStore()
-  const { blogs, initializeBlogs, createBlog } = useBlogStore()
+  const { blogs, initializeBlogs, createBlog, likeBlog, removeBlog } = useBlogStore()
+  const { user, initializeUser, login, logout } = useUserStore()
 
   useEffect(() => {
+    initializeUser()
     initializeBlogs()
-  }, [])
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
-    }
   }, [])
 
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
-      const user = await loginService.login({ username, password })
-      window.localStorage.setItem('loggedBlogUser', JSON.stringify(user))
-      blogService.setToken(user.token)
-      setUser(user)
+      const loggedUser = await login({ username, password })
       setUsername('')
       setPassword('')
-      setNotification(`Welcome ${user.name}`, 'success')
+      setNotification(`Welcome ${loggedUser.name}`, 'success')
     } catch {
       setNotification('wrong username or password', 'error')
     }
-  }
-
-  const handleLogout = () => {
-    window.localStorage.removeItem('loggedBlogUser')
-    blogService.setToken(null)
-    setUser(null)
   }
 
   const handleCreate = async (newBlog) => {
@@ -61,26 +43,13 @@ const App = () => {
   }
 
   const handleLike = async (blog) => {
-    const updatedBlog = {
-      title: blog.title,
-      author: blog.author,
-      url: blog.url,
-      likes: blog.likes + 1,
-      user: blog.user ? blog.user.id : null
-    }
-    const returnedBlog = await blogService.update(blog.id, updatedBlog)
-    useBlogStore.setState((state) => ({
-      blogs: state.blogs.map(b => b.id === returnedBlog.id ? { ...returnedBlog, user: blog.user } : b)
-    }))
+    await likeBlog(blog)
   }
 
   const handleDelete = async (blog) => {
     const confirmed = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
     if (!confirmed) return
-    await blogService.remove(blog.id)
-    useBlogStore.setState((state) => ({
-      blogs: state.blogs.filter(b => b.id !== blog.id)
-    }))
+    await removeBlog(blog)
   }
 
   if (user === null) {
@@ -109,7 +78,7 @@ const App = () => {
       <Notification />
       <p>
         {user.name} logged in
-        <button onClick={handleLogout}>logout</button>
+        <button onClick={logout}>logout</button>
       </p>
       {formVisible
         ? <div>
