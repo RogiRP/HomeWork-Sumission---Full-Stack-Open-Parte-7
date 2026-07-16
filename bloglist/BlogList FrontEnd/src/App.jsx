@@ -8,6 +8,7 @@ import useNotificationStore from './stores/notificationStore'
 import useBlogStore from './stores/blogStore'
 import useUserStore from './stores/userStore'
 import UserView from './components/UserView'
+import BlogView from './components/BlogView'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -123,18 +124,13 @@ const App = () => {
                 {[...blogs]
                   .sort((a, b) => b.likes - a.likes)
                   .map((blog) => (
-                    <Blog
-                      key={blog.id}
-                      blog={blog}
-                      onLike={handleLike}
-                      onDelete={handleDelete}
-                      currentUser={user}
-                    />
+                    <Blog key={blog.id} blog={blog} />
                   ))}
               </div>
             }
           />
           <Route path="/users/:id" element={<UserView />} />
+          <Route path="/blogs/:id" element={<BlogView />} />
         </Routes>
       </div>
     </Router>
