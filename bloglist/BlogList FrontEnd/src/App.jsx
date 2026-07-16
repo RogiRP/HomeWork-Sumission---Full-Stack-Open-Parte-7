@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
+import Users from './components/Users'
 import useNotificationStore from './stores/notificationStore'
 import useBlogStore from './stores/blogStore'
 import useUserStore from './stores/userStore'
@@ -73,24 +75,35 @@ const App = () => {
   }
 
   return (
-    <div>
-      <h2>blogs</h2>
-      <Notification />
-      <p>
-        {user.name} logged in
-        <button onClick={logout}>logout</button>
-      </p>
-      {formVisible
-        ? <div>
-            <BlogForm onCreate={handleCreate} />
-            <button onClick={() => setFormVisible(false)}>cancel</button>
-          </div>
-        : <button onClick={() => setFormVisible(true)}>create new blog</button>
-      }
-      {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
-        <Blog key={blog.id} blog={blog} onLike={handleLike} onDelete={handleDelete} currentUser={user} />
-      )}
-    </div>
+    <Router>
+      <div>
+        <nav>
+          <Link to="/">blogs</Link> &nbsp;
+          <Link to="/users">users</Link> &nbsp;
+          {user.name} logged in
+          <button onClick={logout}>logout</button>
+        </nav>
+        <h2>blog app</h2>
+        <Notification />
+        <Routes>
+          <Route path="/users" element={<Users />} />
+          <Route path="/" element={
+            <div>
+              {formVisible
+                ? <div>
+                    <BlogForm onCreate={handleCreate} />
+                    <button onClick={() => setFormVisible(false)}>cancel</button>
+                  </div>
+                : <button onClick={() => setFormVisible(true)}>create new blog</button>
+              }
+              {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
+                <Blog key={blog.id} blog={blog} onLike={handleLike} onDelete={handleDelete} currentUser={user} />
+              )}
+            </div>
+          } />
+        </Routes>
+      </div>
+    </Router>
   )
 }
 
