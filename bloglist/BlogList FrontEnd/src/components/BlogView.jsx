@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import axios from 'axios'
 import useBlogStore from '../stores/blogStore'
 import useUserStore from '../stores/userStore'
 
@@ -7,12 +9,22 @@ const BlogView = () => {
   const blogs = useBlogStore((state) => state.blogs)
   const { likeBlog, removeBlog } = useBlogStore()
   const user = useUserStore((state) => state.user)
+  const [comment, setComment] = useState('')
+  const [comments, setComments] = useState(null)
 
   const blog = blogs.find((b) => b.id === id)
 
   if (!blog) return <div>loading...</div>
 
+  const displayComments = comments !== null ? comments : blog.comments || []
   const isCreator = user && blog.user && user.username === blog.user.username
+
+  const handleComment = async (event) => {
+    event.preventDefault()
+    const response = await axios.post(`/api/blogs/${id}/comments`, { comment })
+    setComments(response.data.comments)
+    setComment('')
+  }
 
   return (
     <div>
@@ -38,9 +50,16 @@ const BlogView = () => {
         </button>
       )}
       <h3>comments</h3>
+      <form onSubmit={handleComment}>
+        <input
+          value={comment}
+          onChange={({ target }) => setComment(target.value)}
+        />
+        <button type="submit">add comment</button>
+      </form>
       <ul>
-        {(blog.comments || []).map((comment, i) => (
-          <li key={i}>{comment}</li>
+        {displayComments.map((c, i) => (
+          <li key={i}>{c}</li>
         ))}
       </ul>
     </div>
