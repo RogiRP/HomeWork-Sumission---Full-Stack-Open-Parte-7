@@ -7,6 +7,7 @@ import Users from './components/Users'
 import useNotificationStore from './stores/notificationStore'
 import useBlogStore from './stores/blogStore'
 import useUserStore from './stores/userStore'
+import UserView from './components/UserView'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -14,7 +15,8 @@ const App = () => {
   const [formVisible, setFormVisible] = useState(false)
 
   const { setNotification } = useNotificationStore()
-  const { blogs, initializeBlogs, createBlog, likeBlog, removeBlog } = useBlogStore()
+  const { blogs, initializeBlogs, createBlog, likeBlog, removeBlog } =
+    useBlogStore()
   const { user, initializeUser, login, logout } = useUserStore()
 
   useEffect(() => {
@@ -38,7 +40,10 @@ const App = () => {
     try {
       const createdBlog = await createBlog(newBlog, user)
       setFormVisible(false)
-      setNotification(`a new blog ${createdBlog.title} by ${createdBlog.author} added`, 'success')
+      setNotification(
+        `a new blog ${createdBlog.title} by ${createdBlog.author} added`,
+        'success'
+      )
     } catch {
       setNotification('Error creating blog', 'error')
     }
@@ -49,7 +54,9 @@ const App = () => {
   }
 
   const handleDelete = async (blog) => {
-    const confirmed = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
+    const confirmed = window.confirm(
+      `Remove blog ${blog.title} by ${blog.author}?`
+    )
     if (!confirmed) return
     await removeBlog(blog)
   }
@@ -62,11 +69,21 @@ const App = () => {
         <form onSubmit={handleLogin}>
           <div>
             <label htmlFor="username">username</label>
-            <input id="username" type="text" value={username} onChange={({ target }) => setUsername(target.value)} />
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={({ target }) => setUsername(target.value)}
+            />
           </div>
           <div>
             <label htmlFor="password">password</label>
-            <input id="password" type="password" value={password} onChange={({ target }) => setPassword(target.value)} />
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={({ target }) => setPassword(target.value)}
+            />
           </div>
           <button type="submit">login</button>
         </form>
@@ -87,20 +104,37 @@ const App = () => {
         <Notification />
         <Routes>
           <Route path="/users" element={<Users />} />
-          <Route path="/" element={
-            <div>
-              {formVisible
-                ? <div>
+          <Route
+            path="/"
+            element={
+              <div>
+                {formVisible ? (
+                  <div>
                     <BlogForm onCreate={handleCreate} />
-                    <button onClick={() => setFormVisible(false)}>cancel</button>
+                    <button onClick={() => setFormVisible(false)}>
+                      cancel
+                    </button>
                   </div>
-                : <button onClick={() => setFormVisible(true)}>create new blog</button>
-              }
-              {[...blogs].sort((a, b) => b.likes - a.likes).map(blog =>
-                <Blog key={blog.id} blog={blog} onLike={handleLike} onDelete={handleDelete} currentUser={user} />
-              )}
-            </div>
-          } />
+                ) : (
+                  <button onClick={() => setFormVisible(true)}>
+                    create new blog
+                  </button>
+                )}
+                {[...blogs]
+                  .sort((a, b) => b.likes - a.likes)
+                  .map((blog) => (
+                    <Blog
+                      key={blog.id}
+                      blog={blog}
+                      onLike={handleLike}
+                      onDelete={handleDelete}
+                      currentUser={user}
+                    />
+                  ))}
+              </div>
+            }
+          />
+          <Route path="/users/:id" element={<UserView />} />
         </Routes>
       </div>
     </Router>
