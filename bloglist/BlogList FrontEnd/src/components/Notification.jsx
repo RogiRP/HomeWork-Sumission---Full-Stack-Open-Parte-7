@@ -1,3 +1,4 @@
+import { Alert } from 'react-bootstrap'
 import useNotificationStore from '../stores/notificationStore'
 
 const Notification = () => {
@@ -6,7 +7,9 @@ const Notification = () => {
   if (!message) return null
 
   return (
-    <p style={{ color: type === 'error' ? 'red' : 'green' }}>{message}</p>
+    <Alert variant={type === 'error' ? 'danger' : 'success'}>
+      {message}
+    </Alert>
   )
 }
 
